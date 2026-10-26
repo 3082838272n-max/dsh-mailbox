@@ -1,0 +1,30 @@
+{
+  "name": "dsh-mailbox",
+  "version": "1.0.0",
+  "description": "Mailbox for DeepSeek Harness: sessions pass letters through a folder, and the plugin also wakes a session on an hourly randomized schedule (mutual letters / nudging the owner). 信箱：会话之间用文件夹传信，并可按小时自动叫某一间起来说话。",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/host.js",
+  "exports": {
+    ".": "./lib/host.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "deepseek-harness",
+    "dsh-plugin",
+    "mailbox",
+    "multi-agent",
+    "small-talk"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
