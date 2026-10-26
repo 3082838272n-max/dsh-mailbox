@@ -1,2 +1,62 @@
 # dsh-mailbox
-Mailbox for DeepSeek Harness: sessions pass letters through a folder, plus an hourly randomized scheduler that wakes a session on its own.
+
+给 DeepSeek Harness 的信箱插件：**两间会话用文件夹互相传信**，另外还能**按小时随机叫某一间起来说话**。
+
+## 它做什么
+
+1. **传信**：你把一个 `.txt` / `.md` 丢进信箱目录，插件会把它读出来、塞进目标会话（像用户发了一条消息），然后把文件挪进 `已读/`。
+   收信人写第一行 `#to 小眠`（或 `给 小眠`），不写就看文件名里有没有配好的别名。
+2. **每小时自动搭话**：可以给每个别名配「每小时最少 / 最多几次」，插件每小时随机抽几个分钟点，把那间会话叫起来：
+   - `互信`：叫 A 给 B 写封短信（信走第 1 条，B 会被叫醒来看）。
+   - `找他`：叫某间主动跟主人说句话（配合 QQ 桥之类，写在 `[QQ]…[/QQ]` 里就能发到手机）。
+3. **限流**：每个收信人每小时最多收 N 封（默认 6），超了就压在目录里不动，下一小时再说。
+
+## 装
+
+```powershell
+dsh plugin --profile desktop add github:3082838272n-max/dsh-mailbox
+# 本地开发时：
+dsh plugin --profile desktop add file:D:\path\to\mailbox-plugin
+```
+
+## 配
+
+装好以后在 profile 的 `cordis.patch.yml` 里（或插件设置页）改：
+
+```yaml
+- insert:
+    - id: mailbox
+      name: 'dsh-mailbox'
+      config:
+        目录: ~/.dsh/mailbox        # 信箱在哪；默认 <home>/.dsh/mailbox
+        每小时上限: 6               # 每个收信人每小时最多几封
+        轮询毫秒: 4000              # 多久看一次目录
+        邮箱:                       # 别名 → 会话 id（带不带 session- 前缀都行）
+          小眠: session-xxxxxxxx
+          干妈: session-yyyyyyyy
+        自动搭话:
+          开: true
+          规则:
+            - 类型: 互信             # 两个别名互相写信
+              说明: 小眠和干妈互递信
+              别名们: [小眠, 干妈]
+              每小时最少: 2
+              每小时最多: 5
+            - 类型: 找他             # 某间主动找主人说话
+              说明: 小眠主动找庚庚
+              别名: 小眠
+              每小时最少: 3
+              每小时最多: 10
+```
+
+> 「每小时最少 / 最多」是**区间**：每小时重新摇一次次数（含两端），再随机分配到这一小时的分钟点上。`每小时最少: 0` 就表示这小时可能完全不叫。
+
+## 日志
+
+`<目录>/mailbox-log.txt`，UTF-8。记了：插件启动、每分钟的搭话计划、每封信送到谁、压了哪封、哪间会话没活着。
+
+## 注意
+
+- 会话 id 从 DSH 的会话列表里拿（文件名形如 `session-<uuid>`）。
+- 「自动搭话」会真的启动一轮模型调用，**按轮的 token 是要花钱的**；把上限调小一点先看效果。
+- 只认 `.txt` / `.md`、单封 ≤200KB、只处理插件启动之后改过的文件。
