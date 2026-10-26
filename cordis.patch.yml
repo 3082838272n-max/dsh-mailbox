@@ -1,0 +1,13 @@
+# dsh-mailbox 的默认配置片段。
+# 装好之后按自己的需要改：目录、别名到会话 id 的映射、自动搭话的频率。
+- insert:
+    - id: mailbox
+      name: 'dsh-mailbox'
+      config:
+        目录: ~/.dsh/mailbox
+        每小时上限: 6
+        轮询毫秒: 4000
+        邮箱: {}
+        自动搭话:
+          开: false
+          规则: []
